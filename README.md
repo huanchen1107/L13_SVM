@@ -40,9 +40,17 @@ pip install -r requirements.txt
 ### Phase 1 — Manim Animation
 
 ```bash
+# Requires manim (install via conda or C++ build tools)
 manim -pql phase1_manim_kernel_trick.py SVMKernelTrick3D   # low-quality preview
 manim -pqh phase1_manim_kernel_trick.py SVMKernelTrick3D   # high-quality render
 ```
+
+**No Manim?** Use the matplotlib fallback:
+```bash
+python phase1_matplotlib_animation.py
+```
+
+![Kernel Trick Animation](outputs/phase1_kernel_trick.gif)
 
 ### Phase 2 — RBF SVM Decision Surface
 
