@@ -3,10 +3,10 @@ import numpy as np
 import plotly.graph_objects as go
 import sys
 import os
-import streamlit.components.v1 as components
 sys.path.insert(0, ".")
 from utils.data_generator import generate_ring_dataset
 from utils.svm_utils import train_svm, make_decision_grid, compute_decision_surface
+from utils.animation_utils import generate_kernel_trick_gif
 
 
 st.set_page_config(page_title="SVM Kernel Trick 3D Demo", layout="wide")
@@ -72,10 +72,9 @@ sv = model.support_vectors_ if hasattr(model, "support_vectors_") else np.empty(
 acc = model.score(X, y)
 
 # Create tabs for different views
-tab1, tab2, tab3 = st.tabs([
-    "📊 Interactive Parameters & Models", 
-    "🎬 Concept Animation (Phase 1)", 
-    "🌐 WebGL 3D Web Visualizer (Three.js)"
+tab1, tab2 = st.tabs([
+    "Interactive Parameters & Models", 
+    "Concept Animation (Phase 1)",
 ])
 
 with tab1:
@@ -215,52 +214,36 @@ with tab1:
 with tab2:
     st.subheader("Phase 1: Conceptual 2D to 3D Feature Mapping")
     st.markdown("""
-    Originally in 2D space, the concentric blue and red dots are not linearly separable by any straight line.
-    
-    By applying the feature mapping **$\\phi(x, y) = (x, y, x^2 + y^2)$**, we lift each point into a 3D feature space based on its distance from the origin. 
-    In this 3D space:
-    - Inner blue points remain low.
-    - Outer red points are lifted much higher.
-    - The classes become perfectly separable by a flat, horizontal **separating hyperplane** ($z = c$).
-    - Projecting this 3D hyperplane back to the 2D plane ($z=0$) naturally forms a non-linear circular decision boundary ($x^2 + y^2 = c$).
+    In 2D space, the concentric blue and red dots are not linearly separable.
+    By applying the feature mapping **phi(x, y) = (x, y, x^2 + y^2)**,
+    each point is lifted into 3D based on its distance from the origin.
+    In this 3D space, the classes become separable by a flat **separating hyperplane** (z = c).
+    Projecting back to 2D gives the circular decision boundary (x^2 + y^2 = c).
     """)
-    
-    # Try loading compiled Manim video first, otherwise fallback to the pre-rendered GIF
+
+    col_a1, col_a2, col_a3, col_a4 = st.columns(4)
+    anim_n_inner = col_a1.slider("Blue (inner) points", 10, 100, 35, 5, key="anim_n_inner")
+    anim_n_outer = col_a2.slider("Red (outer) points", 10, 100, 45, 5, key="anim_n_outer")
+    anim_noise = col_a3.slider("Noise", 0.0, 0.3, 0.0, 0.02, key="anim_noise")
+    anim_seed = col_a4.number_input("Random seed", 0, 999, 7, key="anim_seed")
+
+    if st.button("Regenerate Animation", type="primary"):
+        with st.spinner("Generating animation... (may take ~30s)"):
+            out = generate_kernel_trick_gif(
+                n_inner=anim_n_inner, n_outer=anim_n_outer,
+                noise=anim_noise, random_seed=anim_seed,
+            )
+        st.success(f"Saved: {out}")
+        st.rerun()
+
     manim_video = "media/videos/phase1_manim_kernel_trick/480p15/SVMKernelTrick3D.mp4"
     fallback_gif = "outputs/phase1_kernel_trick.gif"
-    
+
     if os.path.exists(manim_video):
         st.video(manim_video)
-        st.caption("🎬 Phase 1 Concept Animation (Generated using Manim Community Edition)")
+        st.caption("Phase 1 Concept Animation (Manim Community Edition)")
     elif os.path.exists(fallback_gif):
         st.image(fallback_gif)
-        st.caption("🎬 Phase 1 Concept Animation (Matplotlib Fallback GIF)")
+        st.caption("Phase 1 Concept Animation (Matplotlib)")
     else:
-        st.warning("Animation files not found. Run `python phase1_matplotlib_animation.py` to generate the fallback GIF.")
-
-with tab3:
-    st.subheader("🌐 WebGL 3D Web Visualizer (Three.js)")
-    st.markdown("""
-    Explore our highly-polished, hardware-accelerated **3D WebGL interactive visualizer**! 
-    This interactive 3D tool was built using Vanilla HTML5/CSS3/JavaScript, **Three.js** for 3D graphics, and **GSAP** for smooth transition animations.
-    
-    ### Features:
-    - 🖱️ **Orbit Controls:** Left-click and drag to rotate the camera, right-click to pan, scroll to zoom.
-    - 📈 **Dynamic Lifting:** Watch the concentric data points smoothly rise onto the 3D paraboloid surface.
-    - 🟢 **Hyperplane Separator:** Visualize the green separating decision hyperplane in 3D.
-    - 🎯 **Support Vectors & Margins:** View support vector highlights, safety margins, and their 2D circular projections in real-time.
-    """)
-    
-    # Embed the user's deployed Three.js tool via an iframe!
-    webgl_url = "https://gogogo137-cmyk.github.io/svm-visualizer/"
-    components.iframe(webgl_url, height=650, scrolling=True)
-    
-    st.markdown(f"""
-    <div style='text-align: center; margin-top: 15px;'>
-        <a href='{webgl_url}' target='_blank'>
-            <button style='padding: 10px 20px; font-size: 16px; background-color: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer;'>
-                🚀 Open in Fullscreen / External Window
-            </button>
-        </a>
-    </div>
-    """, unsafe_allow_html=True)
+        st.warning("Animation not found. Click 'Regenerate' above.")
