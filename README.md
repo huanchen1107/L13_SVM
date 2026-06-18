@@ -1,8 +1,8 @@
 # SVM Kernel Trick 3D Interactive Demo
 
-> An educational project demonstrating how Support Vector Machines use kernel tricks to learn nonlinear decision boundaries. Built for high school and introductory ML students.
+**Live Demo:** [svmdemo.streamlit.app](https://svmdemo.streamlit.app/)
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://svmdemo.streamlit.app/)
+> An educational project demonstrating how Support Vector Machines use kernel tricks to learn nonlinear decision boundaries. Built for high school and introductory ML students.
 
 ![Project Workflow](assets/workflow.png)
 
