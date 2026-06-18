@@ -1,0 +1,10 @@
+numpy
+scikit-learn
+matplotlib
+streamlit
+plotly
+pandas
+# manim — requires Visual C++ Build Tools on Windows (moderngl, glcontext).
+# Install separately or via conda: pip install manim
+# If pip fails, install "Microsoft C++ Build Tools" first:
+#   https://visualstudio.microsoft.com/visual-cpp-build-tools/
