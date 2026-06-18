@@ -1,10 +1,18 @@
 # SVM Kernel Trick 3D Interactive Demo
 
+> An educational project demonstrating how Support Vector Machines use kernel tricks to learn nonlinear decision boundaries. Built for high school and introductory ML students.
+
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://l13-svm.streamlit.app/)
+
 ## Project Overview
 
-A complete educational demonstration for the Support Vector Machine kernel trick. The project includes a Manim animation showing the conceptual 2D-to-3D feature mapping, a real sklearn RBF SVM decision surface visualisation, and an interactive Streamlit/Plotly web app for students to explore kernel parameters.
+Three integrated demos that progressively explain the SVM kernel trick concept:
 
-**Target audience:** high school CS students, introductory ML students, and teachers for classroom presentation.
+| Phase | File | What It Does |
+|-------|------|--------------|
+| 1 | `phase1_manim_kernel_trick.py` | Manim animation: 2D data lifted to 3D via φ(x,y) = (x, y, x² + y²), showing a separating hyperplane |
+| 2 | `phase2_rbf_decision_surface.py` | Real sklearn RBF SVM: 2D decision boundary + 3D decision function surface with support vectors |
+| 3 | `phase3_streamlit_app.py` | Interactive Plotly dashboard: adjust kernel, C, gamma, noise in real time |
 
 ## Educational Story
 
@@ -12,40 +20,8 @@ A complete educational demonstration for the Support Vector Machine kernel trick
 2. "Through feature mapping, the data is lifted to 3D."
 3. "In the 3D feature space, a hyperplane can separate the classes."
 4. "The 3D hyperplane projects back to 2D as a nonlinear (circular) decision boundary."
-5. "A real RBF SVM decision function surface is then visualised to show how the kernel works in practice."
-6. "Finally, an interactive interface lets students adjust C, gamma, and kernel to build intuition."
-
-## Phase 1: Manim Kernel Trick Animation
-
-Animated explanation of how z = x^2 + y^2 makes circularly separable data linearly separable in 3D.
-
-- Shows 2D data on the z = 0 plane
-- Animates lifting points to 3D via φ(x, y) = (x, y, x^2 + y^2)
-- Displays the paraboloid surface and a separating horizontal hyperplane
-- Projects the circle x^2 + y^2 = c back to the 2D plane
-- Camera rotation for spatial understanding
-
-## Phase 2: Real RBF SVM Decision Surface
-
-Trains a real sklearn SVC with RBF kernel and visualises:
-
-- 2D scatter plot with decision boundary (f = 0) and margin contours (f = ±1)
-- 3D decision function surface f(x, y) with training points placed at their decision function values
-- Support vectors highlighted in both plots
-
-## Phase 3: Interactive Streamlit Demo
-
-Web app with sidebar controls for:
-
-- **Kernel:** linear, poly, rbf, sigmoid
-- **C:** 0.1 to 100 (regularisation strength)
-- **Gamma:** 0.01 to 10 (RBF/poly/sigmoid kernel width)
-- **Degree:** 2 to 6 (polynomial kernel degree)
-- **Noise:** 0 to 0.5 (dataset noise)
-- **Number of points:** 40 to 300
-- **Random seed**
-
-Displays interactive 2D decision boundary, 3D decision function surface, support vector metrics, and dynamic teaching notes.
+5. "A real RBF SVM decision function surface shows how the kernel works in practice."
+6. "An interactive interface lets students adjust C, gamma, and kernel to build intuition."
 
 ## Installation
 
@@ -53,45 +29,76 @@ Displays interactive 2D decision boundary, 3D decision function surface, support
 pip install -r requirements.txt
 ```
 
-> **Windows note:** `manim` depends on `moderngl` and `glcontext`, which require Visual C++ Build Tools to compile. If `pip install manim` fails, either:
-> - Install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and retry, or
+> **Windows note:** `manim` depends on `moderngl` and `glcontext`, which require Visual C++ Build Tools. If `pip install manim` fails:
+> - Install [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/), or
 > - Use conda: `conda install -c conda-forge manim`
 
 ## Run Commands
 
-### Phase 1 — Manim animation
+### Phase 1 — Manim Animation
 
-Low-quality preview:
 ```bash
-manim -pql phase1_manim_kernel_trick.py SVMKernelTrick3D
+manim -pql phase1_manim_kernel_trick.py SVMKernelTrick3D   # low-quality preview
+manim -pqh phase1_manim_kernel_trick.py SVMKernelTrick3D   # high-quality render
 ```
 
-High-quality render:
-```bash
-manim -pqh phase1_manim_kernel_trick.py SVMKernelTrick3D
-```
-
-### Phase 2 — RBF SVM decision surface
+### Phase 2 — RBF SVM Decision Surface
 
 ```bash
 python phase2_rbf_decision_surface.py
 ```
 
-Output images are saved to `outputs/`.
+Output images saved to `outputs/`.
 
-### Phase 3 — Interactive Streamlit app
+### Phase 3 — Interactive Streamlit App
 
 ```bash
 streamlit run phase3_streamlit_app.py
 ```
 
+Or try it live at: https://l13-svm.streamlit.app/
+
+## Screenshots
+
+| 2D Decision Boundary | 3D Decision Function Surface |
+|---|---|
+| ![](outputs/phase2_2d_decision_boundary.png) | ![](outputs/phase2_3d_decision_surface.png) |
+
+## Parameter Guide
+
+| Parameter | What It Does | Try This |
+|-----------|-------------|----------|
+| **Kernel** | Controls decision boundary shape | Switch to `linear` — fails on circular data |
+| **C** | Regularization: trade-off between margin width and training errors | 0.1 (softer) vs 50 (harder) |
+| **Gamma** | RBF kernel width: how far each support vector's influence reaches | 0.1 (smooth) vs 5 (overfit) |
+| **Degree** | Polynomial kernel degree (poly only) | 2 (quadratic) vs 5 (complex) |
+| **Noise** | Gaussian noise added to data points | 0 (perfect separation) vs 0.3 (messy) |
+
 ## Important Mathematical Note
 
-The mapping z = x^2 + y^2 in Phase 1 is a visual and educational feature mapping used to explain why nonlinear data can become linearly separable in a higher-dimensional feature space. A real RBF kernel does not explicitly map data to only 3D; it corresponds to a high-dimensional or infinite-dimensional feature space. Therefore, the RBF decision surface shown in Phase 2 and Phase 3 visualises the decision function f(x, y), not the full feature space itself.
+The mapping z = x² + y² in Phase 1 is a visual and educational feature mapping used to explain why nonlinear data can become linearly separable in a higher-dimensional feature space. A real RBF kernel does **not** explicitly map data to only 3D; it corresponds to a high-dimensional or infinite-dimensional feature space. The Phase 2 and Phase 3 visualizations show the decision function f(x, y), not the full feature space itself.
 
 ## Teaching Suggestions
 
-- Start with the Manim animation to build conceptual intuition about why higher dimensions help.
-- Use Phase 3 to let students experiment: try gamma = 0.1 vs gamma = 5, C = 0.1 vs C = 50.
-- Switch to the linear kernel to show it fails on circular data — reinforcing the need for kernels.
-- Discuss how gamma controls the "reach" of each support vector and how C trades off margin width vs training errors.
+- Start with the Manim animation to build conceptual intuition.
+- Use Phase 3 with **linear kernel** to show it fails — reinforcing *why* kernels are needed.
+- Experiment: gamma = 0.1 (smooth, high bias) vs gamma = 5 (wiggly, overfitting).
+- Experiment: C = 0.1 (wide margin, some mistakes ok) vs C = 50 (narrow margin, tries harder).
+- Discuss how gamma controls the "reach" of each support vector and C trades off margin width vs training errors.
+
+## Repository Structure
+
+```
+.
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── phase1_manim_kernel_trick.py    # Manim 3D animation
+├── phase2_rbf_decision_surface.py  # sklearn RBF SVM plots
+├── phase3_streamlit_app.py         # Streamlit + Plotly interactive app
+├── utils/
+│   ├── data_generator.py           # Ring dataset generator
+│   └── svm_utils.py               # SVM training & decision grid helpers
+├── assets/                         # Static assets (empty)
+└── outputs/                        # Generated plots (gitignored)
+```
