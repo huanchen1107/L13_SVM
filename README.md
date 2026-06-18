@@ -4,6 +4,8 @@
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://svmdemo.streamlit.app/)
 
+![Project Workflow](assets/workflow.png)
+
 ## Project Overview
 
 Three integrated demos that progressively explain the SVM kernel trick concept:
