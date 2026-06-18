@@ -1,4 +1,6 @@
 __pycache__/
 *.pyc
 outputs/*.png
+media/
+.env
 .DS_Store

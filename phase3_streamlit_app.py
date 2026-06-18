@@ -2,6 +2,8 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 import sys
+import os
+import streamlit.components.v1 as components
 sys.path.insert(0, ".")
 from utils.data_generator import generate_ring_dataset
 from utils.svm_utils import train_svm, make_decision_grid, compute_decision_surface
@@ -69,135 +71,196 @@ else:
 sv = model.support_vectors_ if hasattr(model, "support_vectors_") else np.empty((0, 2))
 acc = model.score(X, y)
 
-# Concept panel
-with st.expander("Concept", expanded=False):
-    st.markdown("""
-    - **2D circular data** cannot be separated by a straight line.
-    - **Kernel methods** allow SVM to learn nonlinear decision boundaries.
-    - **RBF kernel** uses similarity to support vectors to form a flexible boundary.
-    """)
+# Create tabs for different views
+tab1, tab2, tab3 = st.tabs([
+    "📊 Interactive Parameters & Models", 
+    "🎬 Concept Animation (Phase 1)", 
+    "🌐 WebGL 3D Web Visualizer (Three.js)"
+])
 
-# 2D plot
-st.subheader("2D Decision Boundary")
-fig2d = go.Figure()
-fig2d.add_trace(go.Scatter(
-    x=X[y == 0, 0], y=X[y == 0, 1], mode="markers",
-    marker=dict(color="blue", size=6), name="Inner (class 0)"
-))
-fig2d.add_trace(go.Scatter(
-    x=X[y == 1, 0], y=X[y == 1, 1], mode="markers",
-    marker=dict(color="red", size=6), name="Outer (class 1)"
-))
-if len(sv) > 0:
+with tab1:
+    # Concept panel
+    with st.expander("Concept", expanded=False):
+        st.markdown("""
+        - **2D circular data** cannot be separated by a straight line.
+        - **Kernel methods** allow SVM to learn nonlinear decision boundaries.
+        - **RBF kernel** uses similarity to support vectors to form a flexible boundary.
+        """)
+
+    # 2D plot
+    st.subheader("2D Decision Boundary")
+    fig2d = go.Figure()
     fig2d.add_trace(go.Scatter(
-        x=sv[:, 0], y=sv[:, 1], mode="markers",
-        marker=dict(color="black", size=10, symbol="circle-open", line=dict(width=2)),
-        name="Support vectors"
+        x=X[y == 0, 0], y=X[y == 0, 1], mode="markers",
+        marker=dict(color="blue", size=6), name="Inner (class 0)"
     ))
-
-if has_decision_function:
-    # Decision boundary f=0
-    fig2d.add_trace(go.Contour(
-        x=xx[0, :], y=yy[:, 0], z=Z,
-        contours=dict(start=0, end=0, size=0.01, coloring="lines"),
-        line=dict(color="yellow", width=2.5), name="f(x,y)=0",
-        showscale=False,
+    fig2d.add_trace(go.Scatter(
+        x=X[y == 1, 0], y=X[y == 1, 1], mode="markers",
+        marker=dict(color="red", size=6), name="Outer (class 1)"
     ))
-    # Margin contours f=-1, f=+1
-    fig2d.add_trace(go.Contour(
-        x=xx[0, :], y=yy[:, 0], z=Z,
-        contours=dict(start=-1, end=1, size=1, coloring="lines"),
-        line=dict(color="gray", width=1, dash="dash"),
-        name="margins (f=±1)", showscale=False,
-    ))
-elif kernel == "linear":
-    fig2d.add_trace(go.Contour(
-        x=xx[0, :], y=yy[:, 0], z=Z,
-        contours=dict(start=0, end=0, size=0.01, coloring="lines"),
-        line=dict(color="yellow", width=2.5), name="boundary",
-        showscale=False,
-    ))
+    if len(sv) > 0:
+        fig2d.add_trace(go.Scatter(
+            x=sv[:, 0], y=sv[:, 1], mode="markers",
+            marker=dict(color="black", size=10, symbol="circle-open", line=dict(width=2)),
+            name="Support vectors"
+        ))
 
-fig2d.update_layout(
-    xaxis_title="x", yaxis_title="y",
-    width=600, height=550,
-    xaxis=dict(scaleanchor="y", scaleratio=1),
-    legend=dict(x=0.01, y=0.99),
-)
-st.plotly_chart(fig2d, width="stretch")
+    if has_decision_function:
+        # Decision boundary f=0
+        fig2d.add_trace(go.Contour(
+            x=xx[0, :], y=yy[:, 0], z=Z,
+            contours=dict(start=0, end=0, size=0.01, coloring="lines"),
+            line=dict(color="yellow", width=2.5), name="f(x,y)=0",
+            showscale=False,
+        ))
+        # Margin contours f=-1, f=+1
+        fig2d.add_trace(go.Contour(
+            x=xx[0, :], y=yy[:, 0], z=Z,
+            contours=dict(start=-1, end=1, size=1, coloring="lines"),
+            line=dict(color="gray", width=1, dash="dash"),
+            name="margins (f=±1)", showscale=False,
+        ))
+    elif kernel == "linear":
+        fig2d.add_trace(go.Contour(
+            x=xx[0, :], y=yy[:, 0], z=Z,
+            contours=dict(start=0, end=0, size=0.01, coloring="lines"),
+            line=dict(color="yellow", width=2.5), name="boundary",
+            showscale=False,
+        ))
 
-# 3D plot
-st.subheader("3D Decision Function Surface")
-fig3d = go.Figure()
+    fig2d.update_layout(
+        xaxis_title="x", yaxis_title="y",
+        width=600, height=550,
+        xaxis=dict(scaleanchor="y", scaleratio=1),
+        legend=dict(x=0.01, y=0.99),
+    )
+    st.plotly_chart(fig2d, width="stretch")
 
-if has_decision_function:
-    fig3d.add_trace(go.Surface(
-        x=xx, y=yy, z=Z, colorscale="RdYlBu",
-        opacity=0.8, name="f(x, y)", showscale=True,
-        colorbar=dict(title="f(x, y)"),
-    ))
+    # 3D plot
+    st.subheader("3D Decision Function Surface")
+    fig3d = go.Figure()
 
-Z_train = model.decision_function(X) if has_decision_function else np.zeros(len(X))
-fig3d.add_trace(go.Scatter3d(
-    x=X[y == 0, 0], y=X[y == 0, 1], z=Z_train[y == 0],
-    mode="markers", marker=dict(color="blue", size=3),
-    name="Inner"
-))
-fig3d.add_trace(go.Scatter3d(
-    x=X[y == 1, 0], y=X[y == 1, 1], z=Z_train[y == 1],
-    mode="markers", marker=dict(color="red", size=3),
-    name="Outer"
-))
-if len(sv) > 0 and has_decision_function:
-    Z_sv = model.decision_function(sv)
+    if has_decision_function:
+        fig3d.add_trace(go.Surface(
+            x=xx, y=yy, z=Z, colorscale="RdYlBu",
+            opacity=0.8, name="f(x, y)", showscale=True,
+            colorbar=dict(title="f(x, y)"),
+        ))
+
+    Z_train = model.decision_function(X) if has_decision_function else np.zeros(len(X))
     fig3d.add_trace(go.Scatter3d(
-        x=sv[:, 0], y=sv[:, 1], z=Z_sv,
-        mode="markers",
-        marker=dict(color="black", size=6, symbol="circle-open", line=dict(width=2)),
-        name="Support vectors"
+        x=X[y == 0, 0], y=X[y == 0, 1], z=Z_train[y == 0],
+        mode="markers", marker=dict(color="blue", size=3),
+        name="Inner"
     ))
-if has_decision_function:
-    fig3d.add_trace(go.Surface(
-        x=xx, y=yy, z=np.zeros_like(xx),
-        opacity=0.15, colorscale=[[0, "gray"], [1, "gray"]],
-        showscale=False, name="z = 0",
+    fig3d.add_trace(go.Scatter3d(
+        x=X[y == 1, 0], y=X[y == 1, 1], z=Z_train[y == 1],
+        mode="markers", marker=dict(color="red", size=3),
+        name="Outer"
     ))
+    if len(sv) > 0 and has_decision_function:
+        Z_sv = model.decision_function(sv)
+        fig3d.add_trace(go.Scatter3d(
+            x=sv[:, 0], y=sv[:, 1], z=Z_sv,
+            mode="markers",
+            marker=dict(color="black", size=6, symbol="circle-open", line=dict(width=2)),
+            name="Support vectors"
+        ))
+    if has_decision_function:
+        fig3d.add_trace(go.Surface(
+            x=xx, y=yy, z=np.zeros_like(xx),
+            opacity=0.15, colorscale=[[0, "gray"], [1, "gray"]],
+            showscale=False, name="z = 0",
+        ))
 
-fig3d.update_layout(
-    scene=dict(
-        xaxis_title="x", yaxis_title="y", zaxis_title="f(x, y)",
-        aspectmode="manual",
-        aspectratio=dict(x=1, y=1, z=0.8),
-    ),
-    width=700, height=600,
-    legend=dict(x=0.01, y=0.99),
-)
-st.plotly_chart(fig3d, width="stretch")
+    fig3d.update_layout(
+        scene=dict(
+            xaxis_title="x", yaxis_title="y", zaxis_title="f(x, y)",
+            aspectmode="manual",
+            aspectratio=dict(x=1, y=1, z=0.8),
+        ),
+        width=700, height=600,
+        legend=dict(x=0.01, y=0.99),
+    )
+    st.plotly_chart(fig3d, width="stretch")
 
-# Support vector metrics
-col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Support vectors", len(sv))
-col2.metric("Training accuracy", f"{acc:.3f}")
-col3.metric("Kernel", kernel)
-col4.metric("C", f"{C:.2f}")
-col5.metric("Gamma", f"{gamma:.2f}" if show_gamma else "N/A")
+    # Support vector metrics
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.metric("Support vectors", len(sv))
+    col2.metric("Training accuracy", f"{acc:.3f}")
+    col3.metric("Kernel", kernel)
+    col4.metric("C", f"{C:.2f}")
+    col5.metric("Gamma", f"{gamma:.2f}" if show_gamma else "N/A")
 
-# Teaching notes
-st.subheader("Teaching Notes")
-notes = []
-if show_gamma and isinstance(gamma, (int, float)):
-    if gamma < 0.2:
-        notes.append("Gamma is small: the boundary is smoother and each point has wider influence.")
-    if gamma > 3:
-        notes.append("Gamma is large: the boundary becomes very flexible and may overfit.")
-if C < 1:
-    notes.append("C is small: the model allows more mistakes to keep a wider margin.")
-if C > 20:
-    notes.append("C is large: the model tries harder to classify training data correctly.")
-if kernel == "linear":
-    notes.append("Linear kernel can only find a straight line. It will fail badly on circular data.")
-if notes:
-    for note in notes:
-        st.info(note)
-else:
-    st.info("Try adjusting gamma, C, or kernel to see teaching tips appear here.")
+    # Teaching notes
+    st.subheader("Teaching Notes")
+    notes = []
+    if show_gamma and isinstance(gamma, (int, float)):
+        if gamma < 0.2:
+            notes.append("Gamma is small: the boundary is smoother and each point has wider influence.")
+        if gamma > 3:
+            notes.append("Gamma is large: the boundary becomes very flexible and may overfit.")
+    if C < 1:
+        notes.append("C is small: the model allows more mistakes to keep a wider margin.")
+    if C > 20:
+        notes.append("C is large: the model tries harder to classify training data correctly.")
+    if kernel == "linear":
+        notes.append("Linear kernel can only find a straight line. It will fail badly on circular data.")
+    if notes:
+        for note in notes:
+            st.info(note)
+    else:
+        st.info("Try adjusting gamma, C, or kernel to see teaching tips appear here.")
+
+with tab2:
+    st.subheader("Phase 1: Conceptual 2D to 3D Feature Mapping")
+    st.markdown("""
+    Originally in 2D space, the concentric blue and red dots are not linearly separable by any straight line.
+    
+    By applying the feature mapping **$\\phi(x, y) = (x, y, x^2 + y^2)$**, we lift each point into a 3D feature space based on its distance from the origin. 
+    In this 3D space:
+    - Inner blue points remain low.
+    - Outer red points are lifted much higher.
+    - The classes become perfectly separable by a flat, horizontal **separating hyperplane** ($z = c$).
+    - Projecting this 3D hyperplane back to the 2D plane ($z=0$) naturally forms a non-linear circular decision boundary ($x^2 + y^2 = c$).
+    """)
+    
+    # Try loading compiled Manim video first, otherwise fallback to the pre-rendered GIF
+    manim_video = "media/videos/phase1_manim_kernel_trick/480p15/SVMKernelTrick3D.mp4"
+    fallback_gif = "outputs/phase1_kernel_trick.gif"
+    
+    if os.path.exists(manim_video):
+        st.video(manim_video)
+        st.caption("🎬 Phase 1 Concept Animation (Generated using Manim Community Edition)")
+    elif os.path.exists(fallback_gif):
+        st.image(fallback_gif)
+        st.caption("🎬 Phase 1 Concept Animation (Matplotlib Fallback GIF)")
+    else:
+        st.warning("Animation files not found. Run `python phase1_matplotlib_animation.py` to generate the fallback GIF.")
+
+with tab3:
+    st.subheader("🌐 WebGL 3D Web Visualizer (Three.js)")
+    st.markdown("""
+    Explore our highly-polished, hardware-accelerated **3D WebGL interactive visualizer**! 
+    This interactive 3D tool was built using Vanilla HTML5/CSS3/JavaScript, **Three.js** for 3D graphics, and **GSAP** for smooth transition animations.
+    
+    ### Features:
+    - 🖱️ **Orbit Controls:** Left-click and drag to rotate the camera, right-click to pan, scroll to zoom.
+    - 📈 **Dynamic Lifting:** Watch the concentric data points smoothly rise onto the 3D paraboloid surface.
+    - 🟢 **Hyperplane Separator:** Visualize the green separating decision hyperplane in 3D.
+    - 🎯 **Support Vectors & Margins:** View support vector highlights, safety margins, and their 2D circular projections in real-time.
+    """)
+    
+    # Embed the user's deployed Three.js tool via an iframe!
+    webgl_url = "https://gogogo137-cmyk.github.io/svm-visualizer/"
+    components.iframe(webgl_url, height=650, scrolling=True)
+    
+    st.markdown(f"""
+    <div style='text-align: center; margin-top: 15px;'>
+        <a href='{webgl_url}' target='_blank'>
+            <button style='padding: 10px 20px; font-size: 16px; background-color: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer;'>
+                🚀 Open in Fullscreen / External Window
+            </button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
