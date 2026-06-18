@@ -2,7 +2,7 @@
 
 > An educational project demonstrating how Support Vector Machines use kernel tricks to learn nonlinear decision boundaries. Built for high school and introductory ML students.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://l13-svm.streamlit.app/)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://svmdemo.streamlit.app/)
 
 ## Project Overview
 
@@ -56,7 +56,7 @@ Output images saved to `outputs/`.
 streamlit run phase3_streamlit_app.py
 ```
 
-Or try it live at: https://l13-svm.streamlit.app/
+Or try it live at: https://svmdemo.streamlit.app/
 
 ## Screenshots
 
